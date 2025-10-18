@@ -1,13 +1,11 @@
 import joblib
 import pandas as pd
 import os
+from backend import config
 
 
 class RecommendationService:
     _loss_model = None
-    # Let's define a cost for cleaning and a value for energy
-    CLEANING_COST = 2000  # Example cost in currency (e.g., INR)
-    ENERGY_VALUE_PER_KWH = 7 # Example value of 1 kWh of energy
 
     @classmethod
     def _get_model(cls):
@@ -60,24 +58,26 @@ class RecommendationService:
 
             # Predict the current hourly loss
             predicted_hourly_loss_kw = model.predict(df)[0]
+            # print(model.predict(df))
 
             # --- Recommendation Logic ---
             # Estimate the financial loss over a full day (e.g., 8 peak sun hours)
             estimated_daily_loss_kwh = predicted_hourly_loss_kw * 8
-            daily_financial_loss = estimated_daily_loss_kwh * cls.ENERGY_VALUE_PER_KWH
+            daily_financial_loss = estimated_daily_loss_kwh * config.ENERGY_VALUE_PER_KWH
+            
 
             recommendation = "No immediate action required. System performing within expected parameters."
             action_required = False
 
             # CORRECTED RULE: Lower the threshold to make it more sensitive.
-            # Let's trigger a recommendation if the daily loss is greater than ₹20
-            if daily_financial_loss > 20:
+            # Let's trigger a recommendation if the daily loss is greater than the threshold
+            if daily_financial_loss > config.RECOMMENDATION_THRESHOLD_INR:
                 action_required = True
                 recommendation = (
                     f"High energy loss detected due to soiling. "
                     f"Estimated daily financial loss: ₹{daily_financial_loss:.2f}. "
-                    f"Recommend scheduling panel cleaning. The cost of cleaning (₹{cls.CLEANING_COST}) "
-                    f"could be recovered in approximately {cls.CLEANING_COST / daily_financial_loss:.1f} days."
+                    f"Recommend scheduling panel cleaning. The cost of cleaning (₹{config.CLEANING_COST}) "
+                    f"could be recovered in approximately {config.CLEANING_COST / daily_financial_loss:.1f} days."
                 )
 
             return {
