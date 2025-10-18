@@ -12,14 +12,15 @@ def simulate_loss_data(num_records=8760*2, output_path='../../data/historical_lo
 
     # Simulate 2 years of data to see degradation effects
     timestamps = pd.date_range(start='2023-01-01', periods=num_records, freq='h')
+    # print(timestamps)
 
     # --- Base Ideal Conditions (same as before) ---
     day_of_year = timestamps.dayofyear
     hour_of_day = timestamps.hour
-    temperature_celsius = 10 + (15 * np.sin(2 * np.pi * (day_of_year % 365 - 80) / 365)) + (5 * np.sin(2 * np.pi * (hour_of_day - 6) / 24)) + np.random.normal(0, 2, num_records)
+    temperature_celsius = 25 + (15 * np.sin(2 * np.pi * (day_of_year % 365 - 80) / 365)) + (5 * np.sin(2 * np.pi * (hour_of_day - 6) / 24)) + np.random.normal(0, 2, num_records)
     cloud_cover_percentage = np.random.uniform(0, 100, num_records)
     panel_angle_degrees = 35 # Fixed optimal angle for simplicity
-    
+
     # Ideal Power Calculation
     base_power = 10 * np.sin(np.pi * hour_of_day / 24) * (1 - cloud_cover_percentage / 120)
     temp_factor = 1 - 0.005 * np.maximum(0, temperature_celsius - 25)
@@ -61,7 +62,7 @@ def simulate_loss_data(num_records=8760*2, output_path='../../data/historical_lo
         'days_since_cleaning': days_since_cleaning,
         'ideal_power_kw': ideal_power_kw,
         'actual_power_kw': actual_power_kw,
-        'energy_loss_kw': energy_loss_kw # Our new target!
+        'energy_loss_kw': energy_loss_kw 
     }
     df = pd.DataFrame(data).round(3)
 
